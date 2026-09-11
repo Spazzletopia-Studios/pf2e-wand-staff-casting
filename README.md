@@ -10,7 +10,7 @@ list with the usual spell cards and Cast controls.
   flat check.
 - Staves read their source spell UUID links directly from the staff item. The
   linked spell cards are created in that item's native entry and Cast spends
-  charges from that specific staff.
+charges from that specific staff.
 - Staff charges are stored on the individual staff under
   `flags.pf2e-wand-staff-casting.staff`. The module enforces the normal
   one-prepared-staff-per-actor rule while keeping every item counter separate.
@@ -68,3 +68,62 @@ broken wand continues to show **BROKEN**. PF2e wand records that have no item HP
 use the durable overcharge outcome for the same badge; after the normal Repair
 action succeeds, its owner can click the badge to mark the wand repaired without
 clearing that day's overcharge.
+
+## 0.1.7 source preview: Staff Nexus
+
+An owned Staff Nexus feat starts a compact two-spell picker on the client that
+added it. It waits until a Wizard spellbook has a cantrip and a 1st-rank spell.
+Cancel writes nothing. **Set Up Staff Nexus** in the sheet header is the retry
+action. Setup creates a makeshift staff, a persistent native Item spellcasting
+entry, and two native spell cards. These are real embedded Items, not temporary
+sheet entries. The retry link updates even if the sheet was open before the
+thesis was added: Foundry AppV1 retains the header on body redraws. The original
+spellbook is not changed. Retraining removes only
+the new Items tagged to that exact thesis feat.
+
+Makeshift staves receive no base charges. Their cantrip works at zero charges.
+Prepared spells add their ranks as charges: one spell below level 8, two from
+level 8, and three from level 16. Those charges expire after 24 hours. A merged
+magical staff retains its normal base charges. A flag without an owned thesis
+does not enable these rules. Native entries use `proficiency.slug:null` to use
+PF2e's base spellcasting rank, with INT for Staff Nexus. Wizard identity belongs
+in the source entry's class flag, not in a class-DC statistic slug. Native Cast uses the selected Wizard entry and
+the staff's charge pool, with no second spell-slot charge.
+
+The public API is `game.pf2eWandStaffCasting`:
+
+- `capabilities.staffNexus === 1` is the synchronous feature check.
+- `setupStaffNexus(actor, {interactive=true, staffId=null, spellIds=null})`
+  is async. Spell IDs are the owned book cantrip followed by the owned 1st-rank
+  spell. Quiet generation must pass `interactive:false`; with no configured
+  staff, pass explicit spell IDs. An existing valid selection is reused.
+- Success returns `{ok:true, staffId, entryId, spellIds, createdIds,
+  existingItemChanges}`. Each change is `{itemId,before:flatpatch}`; missing
+  keys use Foundry's `-=key` removal form. IDs cover only this call's new Items.
+- Cancellation returns `{ok:false,cancelled:true}`. A book not yet ready returns
+  `{ok:false,deferred:true,reason:'spellbook-not-ready'}`. Invalid quiet choices
+  return `{ok:false,reason}`. Write failures roll back and throw.
+- `undoStaffNexus(actor,result)` restores the old staff fields and removes only
+  those new IDs. Use it if the caller cannot save its undo journal.
+- `staffNexusReady(actor,staff)` is a pure check returning `{ok,reasons,...}`.
+  It validates the owned thesis, selected book spells, Wizard entry, and native
+  spell links. It ignores Level-Up's old `runtimeBlocker` flag; setup clears that
+  flag only after the check succeeds, and records the change for undo.
+- `prepareStaff(actor,staffId,casterId,bonusTokens)` accepts an array of distinct
+  `entryId|slotKey|slotId` tokens from available prepared slots. It returns
+  `{ok,value,max,bonusRank}`. The native charge badge opens the same picker.
+
+The watcher checks the initiating `userId` and
+`game.pf2eLevelUpAssistant.isGeneratingCharacter(actor)`. Level-Up owns its one
+quiet post-gear call, including when gear is off. No broad global quiet flag is
+used. Older Level-Up integrations must provide the actor-scoped generation API
+before enabling automatic thesis grants.
+
+Browser selectors: `.pf2e-wsc-dialog select[name="rank0"]`, `[name="rank1"]`,
+`[data-button="confirm"]` (Set up staff), `[data-button="cancel"]` (Cancel).
+Retry is `a.pf2e-wsc-nexus`. Preparation uses `[data-wsc-charges]` and
+`select[name="bonus0"]`, plus `bonus1`/`bonus2` at the required levels;
+its confirm button reads Prepare. Selectors must be scoped to the open dialog.
+
+Source and stand-in browser tests do not replace the parent's final live check.
+No installation or deployment is included in this preview.
