@@ -127,3 +127,7 @@ its confirm button reads Prepare. Selectors must be scoped to the open dialog.
 
 Source and stand-in browser tests do not replace the parent's final live check.
 No installation or deployment is included in this preview.
+
+## Get help
+
+[Get Help](https://github.com/Spazzletopia-Studios/spazzmods-support) — report a bug, get install help, ask a question, or suggest an idea.
