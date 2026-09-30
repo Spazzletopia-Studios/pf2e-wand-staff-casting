@@ -1,7 +1,11 @@
 # PF2e Wand & Staff Casting
 
-Standalone character-sheet support for carried wands and prepared staves on
-PF2e 8.4.1. **Add Item Spellcasting** creates a real native PF2e spellcasting
+Standalone character-sheet support for carried wands and prepared staves.
+
+**Compatibility:** Foundry V13 with PF2e 7.12.2, and Foundry V14 with PF2e 8.x
+(tested on 8.5.0 and 8.5.1).
+
+**Add Item Spellcasting** creates a real native PF2e spellcasting
 entry for the selected item, so its spells appear in the normal Spellcasting
 list with the usual spell cards and Cast controls.
 
@@ -19,8 +23,8 @@ charges from that specific staff.
   is never edited.
 
 Rules checked: *GM Core* pages 278 and 282 through Archives of Nethys, plus
-Paizo's official errata. The harness also checks the installed PF2e 8.4.1 API
-and real system/world data.
+Paizo's official errata. The harness also checks the installed PF2e API
+and real system/world data on both lines (PF2e 7.12.2 and 8.5.x).
 
 This module does not require Rest Flow. When both modules are active, Rest Flow
 uses the public `game.pf2eWandStaffCasting` helpers to prepare, show, and adjust
@@ -49,7 +53,8 @@ the Cast button while copying its old HTML marker; that left the new button
 without the module handler and let PF2e cast an exhausted wand as a normal
 spell. Binding identity is now tracked on the real button node, so every new
 button is bound once and the overcharge path survives redraws. The flat check
-uses PF2e 8.4.1's public `game.pf2e.Check` and `CheckModifier` runtime API.
+uses PF2e's public `game.pf2e.Check` and `CheckModifier` runtime API (the same
+on PF2e 7.12.2 and 8.x).
 
 Version 0.1.5 adds a compact high-contrast **BROKEN** badge beside every spell
 linked to a wand that survived its overcharge check. Its tooltip says that the
@@ -69,7 +74,7 @@ use the durable overcharge outcome for the same badge; after the normal Repair
 action succeeds, its owner can click the badge to mark the wand repaired without
 clearing that day's overcharge.
 
-## 0.1.7 source preview: Staff Nexus
+## Staff Nexus (since 0.1.7)
 
 An owned Staff Nexus feat starts a compact two-spell picker on the client that
 added it. It waits until a Wizard spellbook has a cantrip and a 1st-rank spell.
@@ -126,7 +131,6 @@ Retry is `a.pf2e-wsc-nexus`. Preparation uses `[data-wsc-charges]` and
 its confirm button reads Prepare. Selectors must be scoped to the open dialog.
 
 Source and stand-in browser tests do not replace the parent's final live check.
-No installation or deployment is included in this preview.
 
 ## Get help
 
