@@ -1,137 +1,59 @@
 # PF2e Wand & Staff Casting
 
-Standalone character-sheet support for carried wands and prepared staves.
+## Purpose and features
 
-**Compatibility:** Foundry V13 with PF2e 7.12.2, and Foundry V14 with PF2e 8.x
-(tested on 8.5.0 and 8.5.1).
+Wand & Staff Casting gives carried wands and staves native PF2e spellcasting entries on character sheets. Cast spells from the normal list while the module tracks charges on the source item.
 
-**Add Item Spellcasting** creates a real native PF2e spellcasting
-entry for the selected item, so its spells appear in the normal Spellcasting
-list with the usual spell cards and Cast controls.
+## Setup
 
-- Wands use PF2e's native embedded-spell cast path. After the normal daily use,
-  the same Cast control offers the one legal overcharge and rolls PF2e's DC 10
-  flat check.
-- Staves read their source spell UUID links directly from the staff item. The
-  linked spell cards are created in that item's native entry and Cast spends
-charges from that specific staff.
-- Staff charges are stored on the individual staff under
-  `flags.pf2e-wand-staff-casting.staff`. The module enforces the normal
-  one-prepared-staff-per-actor rule while keeping every item counter separate.
-- Each source and spell card stores its source UUID and item id. The generated
-  cards are module-managed and can be removed as one entry; user spell content
-  is never edited.
+Foundry VTT 13 or 14 with PF2e 7.12.2 or newer 7.x, or PF2e 8.x. The manifest sets Foundry minimum 13 and maximum 14; it was verified with PF2e 8.5.0.
 
-Rules checked: *GM Core* pages 278 and 282 through Archives of Nethys, plus
-Paizo's official errata. The harness also checks the installed PF2e API
-and real system/world data on both lines (PF2e 7.12.2 and 8.5.x).
+This is a free module. Install it with the [SpazzMods Installer](https://github.com/Spazzletopia-Studios/spazzmods-installer/releases/latest), or use the [public GitHub release](https://github.com/Spazzletopia-Studios/pf2e-wand-staff-casting/releases/latest). Enable **PF2e Wand & Staff Casting** in Manage Modules.
 
-This module does not require Rest Flow. When both modules are active, Rest Flow
-uses the public `game.pf2eWandStaffCasting` helpers to prepare, show, and adjust
-this same per-staff charge pool.
+## Quick start
 
-Version 0.1.1 preserves planned document ids when creating an entry and repairs
-the broken spell-to-entry links made by 0.1.0. If an empty entry was deleted,
-adding that item again reuses its saved spell cards instead of making copies.
-Every picker option also has literal dark and light colors, so system/theme
-option styling cannot make the dropdown illegible.
+1. Open an owned character sheet.
+2. With Hub enabled, open the SpazzMods dropdown in the sheet header and choose **Add Item Spellcasting**. Without Hub, use the original **Add Item Spellcasting** header action.
+3. Choose a carried wand or staff and a normal spellcasting entry that can cast one of its spells.
+4. Choose **Create Item Entry**.
+5. Cast from the new Item entry in the character's normal spell list.
 
-Version 0.1.2 adds the optional Rest Flow charge API. It also clears PF2e's
-slot-expended marker from module-managed item spell rows, so spell names and
-charge badges are not crossed out. Wand overcharge now posts an explicit DC 10
-PF2e flat check, reports success/failure, destroys the wand on failure or a
-later forbidden attempt, and locks the item while a cast is still resolving.
+## Detailed use
 
-Version 0.1.3 queues fast repeated clicks instead of dropping the legal second
-cast. A wand now has one safe cast, then one overcharge that casts before its
-visible DC 10 flat check. Success makes the wand broken; failure destroys it.
-Any later overcharge attempt destroys it without a spell or another check. A
-restored daily use clears the prior day's overcharge state on its safe cast.
+### Wands
 
-Version 0.1.4 fixes cast controls after a PF2e sheet redraw. Foundry can replace
-the Cast button while copying its old HTML marker; that left the new button
-without the module handler and let PF2e cast an exhausted wand as a normal
-spell. Binding identity is now tracked on the real button node, so every new
-button is bound once and the overcharge path survives redraws. The flat check
-uses PF2e's public `game.pf2e.Check` and `CheckModifier` runtime API (the same
-on PF2e 7.12.2 and 8.x).
+Wand spells use PF2e's embedded-spell casting. After the normal daily use, the Cast control offers one legal overcharge and rolls the PF2e DC 10 flat check. Success breaks the wand; failure destroys it. A later overcharge attempt after the daily attempt casts no spell and destroys the wand. PF2e's normal Repair action remains required. For PF2e wand records without item HP, the module shows the durable overcharge result; after a successful Repair, the owner can click the badge to mark it repaired. Repairing does not restore that day's use.
 
-Version 0.1.5 adds a compact high-contrast **BROKEN** badge beside every spell
-linked to a wand that survived its overcharge check. Its tooltip says that the
-wand needs repair, and the badge is rebuilt from the durable wand state after
-every PF2e sheet redraw.
+### Staves
 
-Version 0.1.6 keeps every rank listed by a staff as its own native spell card,
-including inherited spell lists such as Bounty's Light. Descriptive spell links
-outside the ranked list are no longer treated as staff spells. Existing managed
-entries gain their missing ranked cards on the primary GM client without
-duplicating valid cards. Wand casts now honor the casting entry chosen at setup;
-staff casts cannot exceed that caster's spell rank; and removing or destroying
-an Item entry deletes only module-owned cards. A repaired wand that was already
-overcharged shows **OVERCHARGED** until its daily use resets, while a physically
-broken wand continues to show **BROKEN**. PF2e wand records that have no item HP
-use the durable overcharge outcome for the same badge; after the normal Repair
-action succeeds, its owner can click the badge to mark the wand repaired without
-clearing that day's overcharge.
+The spell list comes from the source staff's linked spells. Each staff has its own charge counter, and casts spend charges from that staff. The selected casting entry controls wand casts; staff casts cannot exceed that caster's spell rank.
 
-## Staff Nexus (since 0.1.7)
+Only one staff can be prepared per actor at a time. Preparing a staff spends the selected prepared spell slots and adds their ranks to its charges. Staff Nexus makeshift staves have no base charges; the cantrip can still be used at zero charges. Its prepared spells determine the extra charges, which expire after 24 hours. Merging with a magical staff keeps the base charges. Retraining removes only the items linked to that exact Staff Nexus feat.
 
-An owned Staff Nexus feat starts a compact two-spell picker on the client that
-added it. It waits until a Wizard spellbook has a cantrip and a 1st-rank spell.
-Cancel writes nothing. **Set Up Staff Nexus** in the sheet header is the retry
-action. Setup creates a makeshift staff, a persistent native Item spellcasting
-entry, and two native spell cards. These are real embedded Items, not temporary
-sheet entries. The retry link updates even if the sheet was open before the
-thesis was added: Foundry AppV1 retains the header on body redraws. The original
-spellbook is not changed. Retraining removes only
-the new Items tagged to that exact thesis feat.
+To remove an Item spellcasting entry, use its remove control. The module removes only its managed entry and spell cards for that source item. It does not edit user spell content.
 
-Makeshift staves receive no base charges. Their cantrip works at zero charges.
-Prepared spells add their ranks as charges: one spell below level 8, two from
-level 8, and three from level 16. Those charges expire after 24 hours. A merged
-magical staff retains its normal base charges. A flag without an owned thesis
-does not enable these rules. Native entries use `proficiency.slug:null` to use
-PF2e's base spellcasting rank, with INT for Staff Nexus. Wizard identity belongs
-in the source entry's class flag, not in a class-DC statistic slug. Native Cast uses the selected Wizard entry and
-the staff's charge pool, with no second spell-slot charge.
+### Staff Nexus
 
-The public API is `game.pf2eWandStaffCasting`:
+When a character has the Staff Nexus thesis, the setup picker asks for the owned Wizard book cantrip and 1st-rank spell. Cancel makes no changes. Setup creates a makeshift staff, a native Item entry, and two spell cards without changing the original spellbook. If the spellbook is not ready, retry with **Set Up Staff Nexus** in the sheet header. Level-Up Assistant can call the public setup API after character generation; it owns that one quiet call.
 
-- `capabilities.staffNexus === 1` is the synchronous feature check.
-- `setupStaffNexus(actor, {interactive=true, staffId=null, spellIds=null})`
-  is async. Spell IDs are the owned book cantrip followed by the owned 1st-rank
-  spell. Quiet generation must pass `interactive:false`; with no configured
-  staff, pass explicit spell IDs. An existing valid selection is reused.
-- Success returns `{ok:true, staffId, entryId, spellIds, createdIds,
-  existingItemChanges}`. Each change is `{itemId,before:flatpatch}`; missing
-  keys use Foundry's `-=key` removal form. IDs cover only this call's new Items.
-- Cancellation returns `{ok:false,cancelled:true}`. A book not yet ready returns
-  `{ok:false,deferred:true,reason:'spellbook-not-ready'}`. Invalid quiet choices
-  return `{ok:false,reason}`. Write failures roll back and throw.
-- `undoStaffNexus(actor,result)` restores the old staff fields and removes only
-  those new IDs. Use it if the caller cannot save its undo journal.
-- `staffNexusReady(actor,staff)` is a pure check returning `{ok,reasons,...}`.
-  It validates the owned thesis, selected book spells, Wizard entry, and native
-  spell links. It ignores Level-Up's old `runtimeBlocker` flag; setup clears that
-  flag only after the check succeeds, and records the change for undo.
-- `prepareStaff(actor,staffId,casterId,bonusTokens)` accepts an array of distinct
-  `entryId|slotKey|slotId` tokens from available prepared slots. It returns
-  `{ok,value,max,bonusRank}`. The native charge badge opens the same picker.
+## Settings
 
-The watcher checks the initiating `userId` and
-`game.pf2eLevelUpAssistant.isGeneratingCharacter(actor)`. Level-Up owns its one
-quiet post-gear call, including when gear is off. No broad global quiet flag is
-used. Older Level-Up integrations must provide the actor-scoped generation API
-before enabling automatic thesis grants.
+No configurable module settings are registered.
 
-Browser selectors: `.pf2e-wsc-dialog select[name="rank0"]`, `[name="rank1"]`,
-`[data-button="confirm"]` (Set up staff), `[data-button="cancel"]` (Cancel).
-Retry is `a.pf2e-wsc-nexus`. Preparation uses `[data-wsc-charges]` and
-`select[name="bonus0"]`, plus `bonus1`/`bonus2` at the required levels;
-its confirm button reads Prepare. Selectors must be scoped to the open dialog.
+## Limits and recovery
 
-Source and stand-in browser tests do not replace the parent's final live check.
+You must own the character to create entries or cast. The selected caster must have a normal spellcasting entry eligible for the source item. If an entry cannot be recreated because its casting entry is missing, recreate it from the picker. Review charge and repair badges before another cast; a destroyed wand cannot be used.
+
+## API and development
+
+The public API is `game.pf2eWandStaffCasting`. It includes `addItemCasting`, `removeItemCasting`, staff setup, charge adjustment, preparation, and repair helpers. `capabilities.staffNexus === 1` identifies Staff Nexus support.
+
+Run the source checks with `npm --prefix harness test`. This does not replace installed checks on the supported Foundry/PF2e lines.
+
+## Credits and license
+
+Author: Spazz. MIT License.
 
 ## Get help
 
-[Get Help](https://github.com/Spazzletopia-Studios/spazzmods-support) — report a bug, get install help, ask a question, or suggest an idea.
+[SpazzMods Support](https://github.com/Spazzletopia-Studios/spazzmods-support).
